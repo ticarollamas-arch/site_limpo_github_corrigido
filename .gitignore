@@ -1,0 +1,16 @@
+
+# NUNCA SUBIR O .ENV (Chaves da Shopee e APIs)
+.env
+*.env
+
+# NÃO SUBIR O BANCO DE DADOS (Arquivo muito grande)
+catalogo.json
+catalogo.json.tmp
+backups/
+
+# NÃO SUBIR AS PÁGINAS GERADAS (Ocupam muito espaço)
+ofertas/
+sitemap.xml
+
+# NÃO SUBIR AS DEPENDÊNCIAS (O GitHub instala sozinho)
+node_modules/

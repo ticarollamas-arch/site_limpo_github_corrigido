@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Achadinhos da Shopee</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZC0P2HWSN6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ZC0P2HWSN6');
+</script>
+<style>
+  /* RESET TOTAL E INFALÍVEL */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { 
+      background: #F5F5F5; 
+      color: #1E293B; 
+      font-family: 'Inter', sans-serif;
+      overflow-y: auto !important; /* FORÇA A ROLAGEM */
+      height: auto !important;
+      min-height: 100vh;
+  }
+  
+  .header { display: flex; justify-content: center; padding: 15px; background: #FFF; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .logo { font-size: 18px; font-weight: 800; color: #EE4D2D; text-decoration: none; }
+
+  .carousel { width: 100%; overflow: hidden; background: #FFF; margin-bottom: 15px; }
+  .carousel img { width: 100%; height: auto; display: block; }
+
+  .search-bar { padding: 0 16px; margin-bottom: 15px; }
+  .search-bar input { width: 100%; padding: 12px 20px; border-radius: 50px; border: 1px solid #E2E8F0; font-size: 14px; outline: none; }
+
+  .categories { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 15px 16px; scrollbar-width: none; }
+  .categories::-webkit-scrollbar { display: none; }
+  .category-tab { background: #FFF; border: 1px solid #E2E8F0; padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; color: #64748B; }
+  .category-tab.active { background: #B82400; color: white; border-color: #B82400; }
+
+  /* GRID DE PRODUTOS - SEM TRAVAS */
+  .main-content { 
+      display: block !important; 
+      width: 100%; 
+      padding: 0 16px 100px 16px; /* Respiro no fundo */
+  }
+  .grid { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 15px; 
+  }
+  @media (min-width: 768px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .card { opacity: 1 !important; background: #FFF; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0; display: flex; flex-direction: column; }
+  .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+  .card-info { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+  .card-title { font-size: 13px; font-weight: 600; height: 38px; overflow: hidden; margin-bottom: 8px; line-height: 1.4; }
+  .card-price { font-size: 18px; font-weight: 800; color: #B82400; margin-bottom: 10px; }
+  .btn { background: #B82400; color: white; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none; margin-top: auto; font-size: 13px; }
+
+  .footer { background: #0f172a; color: #cbd5e1; text-align: center; padding: 30px 20px; font-size: 13px; }
+</style>
+
+
+
+</head>
+<body>
+
+<div class="header"><a href="/" class="logo">🛒 ACHADINHOS DA SHOPEE</a></div>
+
+<div class="carousel">
+  <!-- Substitua pelos links das suas imagens se necessário -->
+  <img src="/assets/banner_1.webp" alt="Banner">
+</div>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Buscar produtos..." oninput="filtrarProdutos()">
+</div>
+
+<div class="categories" id="categoriesContainer"></div>
+
+<main class="main-content">
+  <div class="grid" id="shopee-products">
+    <!-- Produtos entram aqui -->
+  </div>
+</main>
+
+<div class="footer">
+  <h3 style="color: #EE4D2D; margin-bottom: 10px;">Achadinhos da Shopee</h3>
+  <p>Os preços podem sofrer alteração conforme as ofertas oficiais.</p>
+</div>
+
+<script>
+  let termoBusca = "", categoriaAtiva = "Todos", paginaAtual = 1, carregando = false, temMais = true;
+
+  const CATEGORIAS = ["Todos", "Moda Plus Size", "Moda Feminina", "Moda Masculina", "Eletrônicos", "Casa e Cozinha", "Beleza", "Pet Shop"];
+
+  function criarCategorias() {
+    document.getElementById('categoriesContainer').innerHTML = CATEGORIAS.map(c => 
+      `<button class="category-tab ${c === categoriaAtiva ? 'active' : ''}" onclick="mudarCategoria('${c}')">${c}</button>`
+    ).join('');
+  }
+
+  function mudarCategoria(cat) {
+    categoriaAtiva = cat;
+    document.querySelectorAll('.category-tab').forEach(t => t.classList.toggle('active', t.innerText === cat));
+    paginaAtual = 1; temMais = true; carregando = false;
+    document.getElementById('shopee-products').innerHTML = '<p style="text-align:center; padding:20px; grid-column:1/-1;">Carregando...</p>';
+    carregarProdutos();
+  }
+
+  function filtrarProdutos() {
+    termoBusca = document.getElementById('searchInput').value;
+    paginaAtual = 1; temMais = true; carregando = false;
+    document.getElementById('shopee-products').innerHTML = '<p style="text-align:center; padding:20px; grid-column:1/-1;">Buscando...</p>';
+    carregarProdutos();
+  }
+
+  async function carregarProdutos() {
+    if (carregando || !temMais) return;
+    carregando = true;
+
+    try {
+      const params = new URLSearchParams({ page: String(paginaAtual), limit: '20', q: termoBusca, cat: categoriaAtiva, _: String(Date.now()) });
+      const res = await fetch(`/api/catalogo?${params.toString()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Falha ao carregar catálogo (HTTP ${res.status})`);
+      const json = await res.json();
+      
+      const grid = document.getElementById('shopee-products');
+      if (paginaAtual === 1) grid.innerHTML = ''; // Limpa o "Carregando..."
+
+      if (!json.data || json.data.length === 0) {
+        temMais = false; carregando = false;
+        if (paginaAtual === 1) grid.innerHTML = '<p style="text-align:center; grid-column:1/-1;">Nenhum produto encontrado.</p>';
+        return;
+      }
+
+      const html = json.data.map(p => `
+        <div class="card">
+          <img src="${p.imageUrl}" alt="${p.productName}" loading="lazy">
+          <div class="card-info">
+            <div class="card-title">${p.productName}</div>
+            <div class="card-price">R$ ${Number(p.priceMin).toFixed(2).replace('.', ',')}</div>
+            <a href="/post.html?id=${encodeURIComponent(p.itemId)}" class="btn">Ver Oferta</a>
+          </div>
+        </div>
+      `).join('');
+
+      grid.insertAdjacentHTML('beforeend', html);
+      paginaAtual++;
+      carregando = false;
+    } catch(e) {
+      carregando = false;
+      console.error('Erro ao carregar produtos:', e);
+      const grid = document.getElementById('shopee-products');
+      if (paginaAtual === 1) grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:20px;">Não foi possível carregar os produtos. <button type="button" onclick="recarregarProdutos()">Tentar novamente</button></p>';
+    }
+  }
+
+  function recarregarProdutos() {
+    paginaAtual = 1; temMais = true; carregando = false;
+    document.getElementById('shopee-products').innerHTML = '<p style="text-align:center; grid-column:1/-1; padding:20px;">Carregando...</p>';
+    carregarProdutos();
+  }
+
+  // ROLAGEM INFINITA FORÇADA
+  window.addEventListener('scroll', () => {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+      carregarProdutos();
+    }
+  });
+
+  // Iniciar
+  criarCategorias();
+  carregarProdutos();
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel Admin - Achadinhos</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--primary:#EE4D2D;--green:#238636;--blue:#58a6ff}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;border-bottom:1px solid var(--border);padding-bottom:20px}
+h1{margin:0;color:var(--primary);display:flex;align-items:center;gap:10px;font-size:22px}
+.status-dot{width:12px;height:12px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,134,54,0.7)}70%{box-shadow:0 0 0 10px rgba(35,134,54,0)}100%{box-shadow:0 0 0 0 rgba(35,134,54,0)}}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative}
+.card h3{margin:0 0 10px 0;font-size:13px;color:#8b949e;text-transform:uppercase;letter-spacing:1px}
+.card .value{font-size:38px;font-weight:900;color:var(--text);line-height:1;word-break:break-all;}
+.card .sub{font-size:12px;color:#8b949e;margin-top:10px}
+.card.highlight{border-color:var(--primary);box-shadow:0 0 20px rgba(238,77,45,0.1)}
+.card.highlight .value{color:var(--primary)}
+.update-time{font-size:12px;color:#8b949e;margin-top:10px}
+</style>
+</head>
+<body>
+
+<header>
+    <h1><span class="status-dot"></span> Centro de Comando</h1>
+    <div style="text-align:right;font-size:12px;color:#8b949e">
+        Atualização Automática<br>
+        <span id="lastUpdate">--:--:--</span>
+    </div>
+</header>
+
+<div class="grid">
+    <div class="card highlight">
+        <h3>Produtos no Banco</h3>
+        <div class="value" id="totalProdutos">0</div>
+        <div class="sub">Total garimpado da Shopee</div>
+    </div>
+    
+    <div class="card">
+        <h3>Velocidade de Garimpo</h3>
+        <div class="value" id="velocidade">0</div>
+        <div class="sub">Produtos por minuto</div>
+    </div>
+
+    <div class="card">
+        <h3>Produtos com SEO</h3>
+        <div class="value" id="comSEO">0</div>
+        <div class="sub">Textos gerados pela IA</div>
+    </div>
+
+    <div class="card">
+        <h3>Memória Node.js</h3>
+        <div class="value" id="memoria" style="font-size: 30px;">0 MB</div>
+        <div class="sub">Uso de RAM do servidor</div>
+    </div>
+</div>
+
+<div id="errorBox" style="display:none; background:#4a1515; color:#ffb4b4; padding:15px; border-radius:8px; margin-top:20px; border:1px solid #f85149;">
+    ⚠️ Erro ao conectar com a API do Backend.
+</div>
+
+<script>
+    async function atualizarMetricas() {
+        try {
+            // Adiciona um parâmetro para evitar cache do navegador
+            const res = await fetch('/api/admin/stats?t=' + Date.now());
+            if (!res.ok) throw new Error("Erro HTTP: " + res.status);
+            
+            const data = await res.json();
+
+            document.getElementById('totalProdutos').innerText = data.totalProdutos;
+            document.getElementById('velocidade').innerText = data.velocidade;
+            document.getElementById('comSEO').innerText = data.produtosComSEO;
+            document.getElementById('memoria').innerText = data.memoria;
+            document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString('pt-BR');
+            document.getElementById('errorBox').style.display = 'none';
+
+        } catch (e) {
+            console.error("Erro na API:", e);
+            document.getElementById('errorBox').style.display = 'block';
+        }
+    }
+
+    // Executa assim que abrir e depois a cada 3 segundos
+    atualizarMetricas();
+    setInterval(atualizarMetricas, 3000);
+</script>
+</body>
+</html>
